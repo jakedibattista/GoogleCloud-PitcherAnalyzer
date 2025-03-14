@@ -1,0 +1,32 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - 'run'
+    - 'deploy'
+    - 'pitcher-analyzer'
+    - '--image'
+    - 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1'
+    - '--region'
+    - 'us-central1'
+    - '--platform'
+    - 'managed'
+    - '--allow-unauthenticated'
+    - '--memory'
+    - '8Gi'
+    - '--set-env-vars'
+    - 'GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json,GCP_PROJECT_ID=baseball-pitcher-analyzer,GCP_BUCKET_NAME=baseball-pitcher-analyzer-videos,GOOGLE_CLOUD_PROJECT=baseball-pitcher-analyzer,GCS_BUCKET=baseball-pitcher-analyzer-videos,GCP_LOCATION=us-central1,GEMINI_API_KEY=AIzaSyAcjTL4a5k3rNc6fdjpovWyJmpHTVC4sHA'
+    - '--set-secrets'
+    - '/tmp/keys/google-credentials.json=google-credentials:latest'
+
+images:
+  - 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1'

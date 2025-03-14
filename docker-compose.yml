@@ -1,0 +1,20 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+      - uploads:/app/uploads
+      - ./google-credentials.json:/app/google-credentials.json
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/google-credentials.json
+      - GCP_PROJECT_ID=baseball-pitcher-analyzer
+      - GCP_BUCKET_NAME=${GCP_BUCKET_NAME}
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  uploads:
+ 
