@@ -15,18 +15,24 @@ steps:
     - 'deploy'
     - 'pitcher-analyzer'
     - '--image'
-    - 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1'
+    - 'us-central1-docker.pkg.dev/${PROJECT_ID}/pitcher-analyzer/app:${COMMIT_SHA}'
     - '--region'
     - 'us-central1'
     - '--platform'
     - 'managed'
-    - '--allow-unauthenticated'
     - '--memory'
     - '8Gi'
     - '--set-env-vars'
-    - 'GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json,GCP_PROJECT_ID=baseball-pitcher-analyzer,GCP_BUCKET_NAME=baseball-pitcher-analyzer-videos,GOOGLE_CLOUD_PROJECT=baseball-pitcher-analyzer,GCS_BUCKET=baseball-pitcher-analyzer-videos,GCP_LOCATION=us-central1,GEMINI_API_KEY=AIzaSyAcjTL4a5k3rNc6fdjpovWyJmpHTVC4sHA'
+    - 'GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json,GCP_PROJECT_ID=${PROJECT_ID},GCP_BUCKET_NAME=${_BUCKET_NAME},GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GCS_BUCKET=${_BUCKET_NAME},GCP_LOCATION=us-central1'
     - '--set-secrets'
-    - '/tmp/keys/google-credentials.json=google-credentials:latest'
+    - '/tmp/keys/google-credentials.json=google-credentials:latest,GEMINI_API_KEY=gemini-api-key:latest'
+    - '--allow-unauthenticated'
 
 images:
   - 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1'
+
+substitutions:
+  _BUCKET_NAME: baseball-pitcher-analyzer-videos  # Set this in Cloud Build trigger
+
+options:
+  logging: CLOUD_LOGGING_ONLY
