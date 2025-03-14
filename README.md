@@ -10,96 +10,64 @@ A machine learning-powered tool for analyzing baseball pitcher mechanics using v
 - **Performance Optimization**: Receive actionable recommendations to improve mechanics
 - **Visual Feedback**: Clear visualizations of mechanical issues and improvements
 
-## Quick Start
+## Secure Deployment
 
-1. **Install dependencies**:
+This application is configured for secure deployment on Google Cloud Run with:
+- Secure credential management
+- Environment variable configuration
+- Cloud Storage integration
+- Automated CI/CD pipeline
+
+### Prerequisites
+
+1. **Google Cloud Platform Account**
+2. **Gemini API Access**
+3. **Docker**
+4. **Python 3.9+**
+
+## Local Development
+
+1. **Clone the repository**:
 ```bash
+git clone https://github.com/yourusername/GoogleCloud-PitcherAnalyzer.git
+cd GoogleCloud-PitcherAnalyzer
+```
+
+2. **Set up environment**:
+```bash
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-2. **Set up credentials**:
+3. **Configure environment variables**:
+- Copy `.env.example` to `.env`
+- Fill in your configuration values
+
+4. **Run locally**:
 ```bash
-# Set up Google Cloud credentials
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/credentials/service-account.json"
-
-# Set up Gemini API key
-export GEMINI_API_KEY="your-gemini-api-key"
-```
-
-3. **Run the application**:
-```bash
-streamlit run pitcher_analyzer/streamlit_app.py
-```
-
-## Using the Application
-
-1. **Upload Video**: Upload a video of the pitch to analyze
-2. **View Analysis**: Get detailed breakdown of mechanics, injury risks, and recommendations
-
-## Technical Details
-
-### Architecture
-
-- **Frontend**: Streamlit web application
-- **Backend**: Python-based analysis pipeline
-- **ML Models**: Gemini API and custom computer vision models
-- **Storage**: Google Cloud Storage for video processing
-- **Deployment**: Docker containerization for easy deployment
-
-### Key Components
-
-- `streamlit_app.py`: Web interface for the application
-- `analyzer.py`: Core analysis pipeline
-- `utils.py`: Utility functions for cloud operations
-- `video_manager.py`: Video processing and management
-- `mechanics_analyzer.py`: Core mechanics analysis logic
-
-## Development
-
-To contribute to the project:
-
-1. **Set up development environment**:
-```bash
-pip install -r requirements-dev.txt
-```
-
-2. **Run tests**:
-```bash
-python -m pitcher_analyzer.tests.test_suite
-```
-
-3. **Format code**:
-```bash
-black pitcher_analyzer/
+streamlit run app.py
 ```
 
 ## Deployment
 
-### Docker Deployment
+The application automatically deploys to Google Cloud Run when changes are pushed to the main branch.
 
-```bash
-# Build Docker image
-docker build -t pitcher-analyzer .
+Required GitHub Secrets:
+- `GCP_PROJECT_ID`: Google Cloud project ID
+- `GCP_BUCKET_NAME`: Cloud Storage bucket name
+- `GCP_SA_KEY`: Service account key JSON
+- `GEMINI_API_KEY`: Gemini API key
 
-# Run Docker container
-docker run -p 8501:8501 -v $(pwd)/credentials:/app/credentials pitcher-analyzer
-```
+## Security
 
-### Cloud Run Deployment
-
-```bash
-# Build and push Docker image
-docker build --platform linux/amd64 -t gcr.io/baseball-pitcher-analyzer/pitcher-analyzer .
-docker push gcr.io/baseball-pitcher-analyzer/pitcher-analyzer
-
-# Deploy to Cloud Run
-gcloud run deploy pitcher-analyzer \
-  --project baseball-pitcher-analyzer \
-  --image gcr.io/baseball-pitcher-analyzer/pitcher-analyzer \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
-```
+- All sensitive credentials are managed through GitHub Secrets
+- No credentials are stored in version control
+- Secure cloud deployment configuration
+- Environment-based configuration management
 
 ## Troubleshooting
 
