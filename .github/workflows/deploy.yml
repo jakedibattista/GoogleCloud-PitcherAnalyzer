@@ -1,0 +1,79 @@
+name: Build and Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Add concurrency control
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      
+    - name: Google Auth
+      id: auth
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker us-docker.pkg.dev
+      
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: us-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gcr.io/pitcher-analyzer:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Deploy to Cloud Run
+      run: |
+        # Create a temporary directory for secrets
+        mkdir -p /tmp/secrets
+        echo '${{ secrets.GCP_SA_KEY }}' > /tmp/secrets/google-credentials.json
+        
+        gcloud run deploy pitcher-analyzer \
+          --project ${{ secrets.GCP_PROJECT_ID }} \
+          --image us-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gcr.io/pitcher-analyzer:${{ github.sha }} \
+          --platform managed \
+          --region us-central1 \
+          --memory 8Gi \
+          --set-env-vars GCP_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }} \
+          --set-env-vars GCP_BUCKET_NAME=${{ secrets.GCP_BUCKET_NAME }} \
+          --set-env-vars GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }} \
+          --set-env-vars GCS_BUCKET=${{ secrets.GCP_BUCKET_NAME }} \
+          --set-env-vars GCP_LOCATION=us-central1 \
+          --set-env-vars GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+          --set-secrets /tmp/keys/google-credentials.json=google-credentials:latest \
+          --allow-unauthenticated
+        
+        # Clean up secrets
+        rm -rf /tmp/secrets
+          
+    # Add a verification step
+    - name: Verify deployment
+      run: |
+        echo "Waiting for deployment to stabilize..."
+        sleep 30
+        DEPLOYED_URL=$(gcloud run services describe pitcher-analyzer --format='value(status.url)')
+        echo "Deployed at: $DEPLOYED_URL"
+        curl -s "$DEPLOYED_URL" | grep -q "Pitcher Analysis Tool" || (echo "Verification failed" && exit 1) 
