@@ -10,22 +10,24 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Create directory for credentials
-RUN mkdir -p /tmp/keys
-
-# Copy requirements first for better caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Create directory for credentials and other necessary directories
+RUN mkdir -p /tmp/keys \
+    /app/uploads \
+    /app/credentials \
+    /app/logs
 
 # Create non-root user
 RUN useradd -m -r app && \
     chown -R app:app /app && \
     chown -R app:app /tmp/keys
 
-# Create necessary directories with correct permissions
-RUN mkdir -p /app/uploads /app/credentials /app/logs && \
-    mkdir -p /home/app/.streamlit && \
-    chown -R app:app /app/uploads /app/credentials /app/logs /home/app/.streamlit
+# Set up Streamlit configuration directory
+RUN mkdir -p /home/app/.streamlit && \
+    chown -R app:app /home/app/.streamlit
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY --chown=app:app . .
