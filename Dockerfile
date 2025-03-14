@@ -17,20 +17,42 @@ RUN mkdir -p /tmp/keys
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY . .
-
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json
-
 # Create non-root user
 RUN useradd -m -r app && \
     chown -R app:app /app && \
     chown -R app:app /tmp/keys
 
+# Create necessary directories with correct permissions
+RUN mkdir -p /app/uploads /app/credentials /app/logs && \
+    mkdir -p /home/app/.streamlit && \
+    chown -R app:app /app/uploads /app/credentials /app/logs /home/app/.streamlit
+
+# Copy application code
+COPY --chown=app:app . .
+
+# Configure Streamlit
+RUN echo '\
+[server]\n\
+maxUploadSize = 200\n\
+maxMessageSize = 200\n\
+\n\
+[browser]\n\
+serverAddress = "0.0.0.0"\n\
+serverPort = 8501\n\
+gatherUsageStats = false\n\
+' > /home/app/.streamlit/config.toml
+
 # Switch to non-root user
 USER app
+
+# Set environment variables
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1 \
+    STREAMLIT_SERVER_PORT=8501 \
+    STREAMLIT_SERVER_ADDRESS=0.0.0.0 \
+    STREAMLIT_SERVER_MAX_UPLOAD_SIZE=200 \
+    STREAMLIT_SERVER_MAX_MESSAGE_SIZE=200 \
+    GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json
 
 # Expose port
 EXPOSE 8501

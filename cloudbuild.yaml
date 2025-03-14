@@ -1,32 +1,38 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1', '.']
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/pitcher-analyzer/app:${COMMIT_SHA}'
+      - '.'
   
-  # Push the container image to Container Registry
+  # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1']
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/pitcher-analyzer/app:${COMMIT_SHA}'
   
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
-    - 'run'
-    - 'deploy'
-    - 'pitcher-analyzer'
-    - '--image'
-    - 'us-central1-docker.pkg.dev/${PROJECT_ID}/pitcher-analyzer/app:${COMMIT_SHA}'
-    - '--region'
-    - 'us-central1'
-    - '--platform'
-    - 'managed'
-    - '--memory'
-    - '8Gi'
-    - '--set-env-vars'
-    - 'GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json,GCP_PROJECT_ID=${PROJECT_ID},GCP_BUCKET_NAME=${_BUCKET_NAME},GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GCS_BUCKET=${_BUCKET_NAME},GCP_LOCATION=us-central1'
-    - '--set-secrets'
-    - '/tmp/keys/google-credentials.json=google-credentials:latest,GEMINI_API_KEY=gemini-api-key:latest'
-    - '--allow-unauthenticated'
+      - 'run'
+      - 'deploy'
+      - 'pitcher-analyzer'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/pitcher-analyzer/app:${COMMIT_SHA}'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--memory'
+      - '8Gi'
+      - '--set-env-vars'
+      - 'GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/google-credentials.json,GCP_PROJECT_ID=${PROJECT_ID},GCP_BUCKET_NAME=${_BUCKET_NAME},GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GCS_BUCKET=${_BUCKET_NAME},GCP_LOCATION=us-central1'
+      - '--set-secrets'
+      - '/tmp/keys/google-credentials.json=google-credentials:latest,GEMINI_API_KEY=gemini-api-key:latest'
+      - '--allow-unauthenticated'
 
 images:
   - 'gcr.io/baseball-pitcher-analyzer/pitcher-analyzer:v1'
