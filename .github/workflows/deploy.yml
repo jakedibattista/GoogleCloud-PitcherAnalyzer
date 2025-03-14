@@ -34,14 +34,14 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         
     - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker us-docker.pkg.dev
+      run: gcloud auth configure-docker us-central1-docker.pkg.dev
       
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
         context: .
         push: true
-        tags: us-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gcr.io/pitcher-analyzer:${{ github.sha }}
+        tags: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/pitcher-analyzer/app:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
@@ -53,7 +53,7 @@ jobs:
         
         gcloud run deploy pitcher-analyzer \
           --project ${{ secrets.GCP_PROJECT_ID }} \
-          --image us-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gcr.io/pitcher-analyzer:${{ github.sha }} \
+          --image us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/pitcher-analyzer/app:${{ github.sha }} \
           --platform managed \
           --region us-central1 \
           --memory 8Gi \
