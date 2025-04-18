@@ -2,6 +2,8 @@
 
 A machine learning-powered tool for analyzing baseball pitcher mechanics using video analysis and Gemini API.
 
+Website (Try it out!) : https://pitcher-analyzer-238493405692.us-central1.run.app/ 
+
 ## Features
 
 - **Video Analysis**: Upload and analyze pitch videos with advanced computer vision
